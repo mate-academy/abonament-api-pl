@@ -26,6 +26,20 @@ LIB-218. Przedłużanie wypożyczenia online
    LIMIT_REACHED | HOLD_EXISTS | OVERDUE_LOANS
 ```
 
+## LIB-218 w gałęzi `final`
+
+Zadanie przeprowadzono według theory-1:
+
+- `docs/LIB-218/spec.md`: kryteria akceptacji, pięć decyzji po badaniu w plan mode, non-goals;
+- `docs/LIB-218/cases.md`: 11 zatwierdzonych przypadków ze statusami i nazwami testów;
+- historia commitów: po jednym commicie na przypadek, test i kod razem, wynik czerwonego przebiegu w treści commita (`git log final`). Jeśli test od razu był zielony, commit wyjaśnia dlaczego.
+
+Nowy kod: `src/loans/renew.ts`, `src/loans/errors.ts`, metody `countOverdue` i `extend` w `src/store/loans.repo.ts`, trasa `POST /loans/:id/renew` w `src/api/loans.route.ts`.
+
+| Żądanie | Odpowiedź |
+| --- | --- |
+| `POST /loans/:id/renew` | `200 { dueAt }`; `409 { code }` z `LIMIT_REACHED`, `OVERDUE_LOANS` lub `HOLD_EXISTS`; `503 { code: "CATALOG_UNAVAILABLE" }`; `404` dla cudzego lub nieistniejącego wypożyczenia; `401` bez tokena |
+
 ## Struktura
 
 ```
