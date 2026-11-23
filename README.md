@@ -6,14 +6,11 @@
 
 | Gałąź | Co zawiera |
 | --- | --- |
-| `main` | Stan przed LIB-218: przedłużenie tylko przy ladzie (`adminRenew`), pętla weryfikacji (verification loop) „jak jest”, lokalne środowisko testowe (stand) z danymi bazowymi |
+| `main` | Stan przed LIB-218: przedłużenie tylko przy ladzie (`adminRenew`), pętla weryfikacji „jak jest”, lokalne środowisko testowe z danymi bazowymi |
 | `final` | LIB-218 według theory-1: sekcja `## TDD` w `CLAUDE.md`, specyfikacja i zatwierdzona lista przypadków w `docs/LIB-218/`, cykl TDD po jednym commicie na przypadek |
 | `theory-2` | `final` + testowanie mutacyjne, guardy i scenariusze środowiska testowego jako dowód (M2T5) |
-| `own-process` | M2T4, praktyka LIB-233 (studium przypadku C31): własny proces, czyli skille `/research`, `/tdd`, `/implement` i hook, który zapisuje zatwierdzony plan |
-| `openspec` | M2T4, praktyka LIB-233 (studium przypadku C31): wynik `openspec init --tools claude`, OpenSpec 1.15.0 |
-| `superpowers` | M2T4, praktyka LIB-233 (studium przypadku C31): Superpowers v7.0.0, przypięty przez marketplace kursu w `.claude/settings.json` |
 
-`main` to także gałąź bazowa dla M2T4: w C18 od niej LIB-218 i LIB-240 przechodzą przez trzy procesy, a gałęzie praktyki (C31, LIB-233) odchodzą od niej jednym commitem konfiguracji. Co zainstalować i na jakich wersjach sprawdzono gałąź, znajdziesz w README każdej gałęzi praktyki.
+`main` to także gałąź bazowa dla M2T4 (C18): w niej LIB-218 i LIB-240 przechodzą przez trzy procesy.
 
 ## Ticket
 

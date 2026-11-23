@@ -27,3 +27,10 @@ docker compose up --build               # lokalne środowisko testowe, API na lo
 - Nowe zapytania do bazy danych umieszczaj w src/store, z testem integracyjnym.
 - Nie aktualizuj plików golden wiadomości e-mail (test/unit/notify/__snapshots__): zatwierdza je zespół treści.
 - Zmieniaj tylko to, czego wymaga ticket.
+
+## TDD
+
+Najpierw test, potem kod. Pokazuj wynik czerwonego przebiegu.
+Nie zmieniaj oczekiwań w testach z zatwierdzonej listy przypadków.
+Jeśli test wydaje się błędny, zatrzymaj się i wyjaśnij, z którym warunkiem
+ticketu twoim zdaniem jest niezgodny.
