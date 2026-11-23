@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { HoldExistsError, LimitReachedError, OverdueLoansError } from "../../../src/loans/errors";
+import {
+  CatalogUnavailableError,
+  HoldExistsError,
+  LimitReachedError,
+  OverdueLoansError,
+} from "../../../src/loans/errors";
 import { renew } from "../../../src/loans/renew";
 import { loan, makeMocks } from "./helpers";
 
@@ -71,7 +76,7 @@ describe("renew", () => {
       new DOMException("The operation was aborted due to timeout", "TimeoutError"),
     );
 
-    await expect(renew(deps, 1, 7)).rejects.toThrow();
+    await expect(renew(deps, 1, 7)).rejects.toThrow(CatalogUnavailableError);
     expect(m.loans.extend).not.toHaveBeenCalled();
   });
 });
