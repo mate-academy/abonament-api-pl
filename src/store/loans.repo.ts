@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, isNull, lt } from "drizzle-orm";
+import { and, asc, count, eq, gte, isNull, lt } from "drizzle-orm";
 import type { Db } from "./db";
 import { loans, readers, type Loan } from "./schema";
 
@@ -20,6 +20,18 @@ export class LoansRepo {
 
   async update(loanId: number, patch: Partial<Pick<Loan, "dueAt" | "renewals">>): Promise<void> {
     await this.db.update(loans).set(patch).where(eq(loans.id, loanId));
+  }
+
+  async countOverdue(readerId: number, now: Date): Promise<number> {
+    const [row] = await this.db
+      .select({ n: count() })
+      .from(loans)
+      .where(and(
+        eq(loans.readerId, readerId),
+        isNull(loans.returnedAt),
+        lt(loans.dueAt, now),
+      ));
+    return row.n;
   }
 
   // Niezwrócone wypożyczenia z due_at w [from, to) dla wiadomości z przypomnieniem.

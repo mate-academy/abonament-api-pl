@@ -45,3 +45,37 @@ describe("LoansRepo against Postgres", () => {
     ]);
   });
 });
+
+// LIB-218, przypadek 9: warunek 4, decyzja 1
+describe("countOverdue against Postgres", () => {
+  const now = new Date("2026-11-03T09:00:00Z");
+
+  beforeEach(async () => {
+    await addReader(t.db, 2);
+  });
+
+  it("counts a loan due a minute before now and skips one due a minute after", async () => {
+    await addLoan(t.db, { id: 1, readerId: 1, dueAt: new Date("2026-11-03T08:59:00Z") });
+    await addLoan(t.db, { id: 2, readerId: 2, dueAt: new Date("2026-11-03T09:01:00Z") });
+
+    expect(await repo.countOverdue(1, now)).toBe(1);
+    expect(await repo.countOverdue(2, now)).toBe(0);
+  });
+
+  it("does not count a returned overdue loan", async () => {
+    await addLoan(t.db, {
+      id: 1,
+      readerId: 1,
+      dueAt: new Date("2026-10-30T00:00:00Z"),
+      returnedAt: new Date("2026-11-01T00:00:00Z"),
+    });
+
+    expect(await repo.countOverdue(1, now)).toBe(0);
+  });
+
+  it("counts the overdue loan that is being renewed", async () => {
+    await addLoan(t.db, { id: 14, readerId: 1, dueAt: new Date("2026-11-01T00:00:00Z") });
+
+    expect(await repo.countOverdue(1, now)).toBe(1);
+  });
+});
