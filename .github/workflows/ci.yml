@@ -51,11 +51,29 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx vitest run --project integration --coverage --coverage.reportsDirectory=coverage/integration
+      # Guard 2 (theory-2): każda funkcja repozytoriów src/store jest wykonana przez test integracyjny.
+      # Tylko *.repo.ts: callback .references(() => readers.id) w schema.ts nie jest wywoływany podczas zapytań,
+      # więc --coverage.include='src/store/**' nie daje 100 % funkcji nawet bez zmian.
+      - run: >-
+          npx vitest run --project integration --coverage
+          --coverage.reportsDirectory=coverage/integration
+          --coverage.include='src/store/*.repo.ts' --coverage.thresholds.functions=100
       - uses: actions/upload-artifact@v7
         with:
           name: coverage-integration
           path: coverage/integration/lcov.info
+
+  # Testowanie mutacyjne z progiem break (stryker.config.json): wynik poniżej 80 → exit 1
+  mutation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx stryker run
 
   # Quality gate Sonar way skonfigurowano na serwerze. Jego status to osobne obowiązkowe sprawdzenie
   sonar:
