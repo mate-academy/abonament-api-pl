@@ -1,4 +1,4 @@
-import { and, asc, count, eq, gte, isNull, lt } from "drizzle-orm";
+import { and, asc, count, eq, gte, isNull, lt, sql } from "drizzle-orm";
 import type { Db } from "./db";
 import { loans, readers, type Loan } from "./schema";
 
@@ -32,6 +32,12 @@ export class LoansRepo {
         lt(loans.dueAt, now),
       ));
     return row.n;
+  }
+
+  async extend(loanId: number, dueAt: Date): Promise<void> {
+    await this.db.update(loans)
+      .set({ dueAt, renewals: sql`${loans.renewals} + 1` })
+      .where(eq(loans.id, loanId));
   }
 
   // Niezwrócone wypożyczenia z due_at w [from, to) dla wiadomości z przypomnieniem.

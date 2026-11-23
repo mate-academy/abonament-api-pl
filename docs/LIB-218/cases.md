@@ -13,7 +13,7 @@ Dane przypadków jednostkowych: dziś (`clock.now()`) 03.11.2026. Status: nie ro
 | 7 | decyzja 4 | kolejność przyczyn | renewals = 2 i jest przeterminowane wypożyczenie → LIMIT_REACHED | unit | | nie rozpoczęto |
 | 8 | decyzja 2 | catalog-api niedostępny | activeForBook odrzuca zapytanie (timeout) → CatalogUnavailableError, extend nie jest wywoływany | unit | | nie rozpoczęto |
 | 9 | warunek 4, decyzja 1 | countOverdue na Postgresie | due_at minutę wcześniej niż clock.now() → 1, minutę później → 0; zwrócone przeterminowane wypożyczenie → 0; samo przedłużane wypożyczenie jest liczone | integration | `test/integration/store/loans.repo.test.ts` › countOverdue against Postgres (3 testy) | zielony |
-| 10 | zasada CLAUDE.md | extend na Postgresie | due_at zaktualizowane, renewals + 1 | integration | | nie rozpoczęto |
+| 10 | zasada CLAUDE.md | extend na Postgresie | due_at zaktualizowane, renewals + 1 | integration | `test/integration/store/loans.repo.test.ts` › extend against Postgres | zielony |
 | 11 | warunek 5 | format odpowiedzi | 200 { dueAt }; 409 { code }; 503 { code: "CATALOG_UNAVAILABLE" } | API | | nie rozpoczęto |
 
 Kolejność przechodzenia: najpierw przypadki 9 i 10 (nowe zapytania `src/store`), potem 1–8 (`renew`), potem 11 (trasa).

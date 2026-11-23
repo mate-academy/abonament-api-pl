@@ -79,3 +79,14 @@ describe("countOverdue against Postgres", () => {
     expect(await repo.countOverdue(1, now)).toBe(1);
   });
 });
+
+// LIB-218, przypadek 10: zasada CLAUDE.md „nowe zapytania z testem integracyjnym”
+describe("extend against Postgres", () => {
+  it("writes the new due_at and increments renewals", async () => {
+    await addLoan(t.db, { id: 7, readerId: 1, dueAt: new Date("2026-11-10T00:00:00Z"), renewals: 1 });
+
+    await repo.extend(7, new Date("2026-11-24T00:00:00Z"));
+
+    expect(await repo.get(7)).toMatchObject({ dueAt: new Date("2026-11-24T00:00:00Z"), renewals: 2 });
+  });
+});
