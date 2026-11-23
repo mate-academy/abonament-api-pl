@@ -1,3 +1,4 @@
 [
-  { "id": 501, "bookId": 104, "readerId": 2 }
+  { "id": 501, "bookId": 104, "readerId": 2 },
+  { "id": 502, "bookId": 101, "readerId": 1 }
 ]

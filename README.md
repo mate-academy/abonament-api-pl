@@ -2,11 +2,34 @@
 
 „Abonament” to fikcyjna sieć miejskich bibliotek. Czytelnik wypożycza książkę na 21 dni i obecnie może przedłużyć wypożyczenie tylko przy ladzie. Repozytorium odtwarza treść studium przypadku (case) C13 (M2T2, teorie 1 i 2): kod, sprawdzenia i konfigurację, z którymi zespół bierze się za ticket LIB-218.
 
+## Gałąź `superpowers`: praktyka M2T4
+
+Praktyka M2T4-task-1, ticket LIB-233 (studium przypadku C31): sposób „Superpowers”. Tekst ticketu i decyzje Product Ownera są w zadaniu.
+
+Co skonfigurowano (jeden commit od `main`):
+
+- w `.claude/settings.json` jest marketplace kursu `abonament-course` (źródło typu `settings`), który przypina plugin Superpowers v7.0.0 (commit `bb92a77`), oraz `enabledPlugins` z `superpowers@abonament-course`;
+- dane środowiska testowego (stand) dla LIB-233 (zobacz „Lokalne środowisko testowe”).
+
+Plugin każdy instaluje sam:
+
+1. Otwórz Claude Code w folderze repozytorium (`claude`) i zaufaj folderowi. Wcześniej marketplace kursu nie jest widoczny, a instalacja odpowiada „not found in marketplace”.
+2. Wyjdź z sesji (`/exit`) i wykonaj:
+
+```bash
+claude plugin install superpowers@abonament-course --scope project
+claude plugin list                      # superpowers@abonament-course, Version: 7.0.0
+```
+
+Nie instaluj pluginu z oficjalnego marketplace (`superpowers@claude-plugins-official`): daje on inną wersję (według stanu na 15.11.2026 to v7.0.2), a przypięty plugin przestaje się ładować.
+
+Sprawdzono 15.11.2026: Superpowers v7.0.0, Claude Code 2.1.325, Opus 5.5.
+
 ## Gałęzie
 
 | Gałąź | Co zawiera |
 | --- | --- |
-| `main` | Stan przed LIB-218: przedłużenie tylko przy ladzie (`adminRenew`), pętla weryfikacji (verification loop) „jak jest”, lokalne środowisko testowe (stand) z danymi bazowymi |
+| `main` | Stan przed LIB-218: przedłużenie tylko przy ladzie (`adminRenew`), pętla weryfikacji (verification loop) „jak jest”, lokalne środowisko testowe z danymi bazowymi |
 | `final` | LIB-218 według theory-1: sekcja `## TDD` w `CLAUDE.md`, specyfikacja i zatwierdzona lista przypadków w `docs/LIB-218/`, cykl TDD po jednym commicie na przypadek |
 | `theory-2` | `final` + testowanie mutacyjne, guardy i scenariusze środowiska testowego jako dowód (M2T5) |
 | `own-process` | M2T4, praktyka LIB-233 (studium przypadku C31): własny proces, czyli skille `/research`, `/tdd`, `/implement` i hook, który zapisuje zatwierdzony plan |
@@ -91,8 +114,11 @@ Dane środowiska testowego (`stand/seed-data.ts`, wszystkie daty z roku 2026, 00
 | 4 | reader3 | 104 | 18.11 | 0 | — |
 | 5 | reader4 | 105 | 04.11 | 0 | — |
 | 6 | reader1 | 106 | 11.10 | 1 | 15.10 |
+| 7 | reader4 | 107 | 30.10 | 0 | — |
 
-catalog-api (`stand/catalog-api/holds.json`): rezerwacja reader2 na książkę 104.
+catalog-api (`stand/catalog-api/holds.json`): rezerwacja reader2 na książkę 104 i rezerwacja reader1 na książkę 101, czyli na jego własne wypożyczenie 1.
+
+Dla LIB-233: wypożyczenie 7 na 03.11 jest przeterminowane, `fineMinor` daje 1000 (dwa dni robocze po 500); wypożyczenie 4 ma rezerwację innego czytelnika, wypożyczenie 1 ma tylko własną rezerwację, a wypożyczenia 2 i 6 są już zwrócone.
 
 ## Pętla weryfikacji „jak jest”
 
