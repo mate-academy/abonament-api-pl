@@ -8,6 +8,8 @@ export function makeMocks() {
   const loans = {
     get: vi.fn<(id: number) => Promise<Loan | undefined>>(),
     update: vi.fn<(id: number, patch: Partial<Loan>) => Promise<void>>().mockResolvedValue(undefined),
+    countOverdue: vi.fn<(readerId: number, now: Date) => Promise<number>>().mockResolvedValue(0),
+    extend: vi.fn<(id: number, dueAt: Date) => Promise<void>>().mockResolvedValue(undefined),
   };
   const holds = { activeForBook: vi.fn<(bookId: number) => Promise<Hold[]>>().mockResolvedValue([]) };
   const clock = { now: vi.fn(() => new Date("2026-11-03T09:00:00Z")) };

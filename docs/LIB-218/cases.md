@@ -4,7 +4,7 @@ Dane przypadków jednostkowych: dziś (`clock.now()`) 03.11.2026. Status: nie ro
 
 | # | Warunek lub decyzja | Przypadek | Dane i oczekiwania | Warstwa | Test | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | warunek 2 | przedłużenie liczy się od due_at | dziś 03.11, due_at 10.11, renewals = 0 → 200, nowa due_at 24.11 | unit | | nie rozpoczęto |
+| 1 | warunek 2 | przedłużenie liczy się od due_at | dziś 03.11, due_at 10.11, renewals = 0 → 200, nowa due_at 24.11 | unit | `test/unit/loans/renew.test.ts` › counts the renewal from due_at, not from today | zielony |
 | 2 | warunek 2 | drugie przedłużenie jest dozwolone | renewals = 1 → 200 | unit | | nie rozpoczęto |
 | 3 | warunek 2 | limit przedłużeń | renewals = 2 → LimitReachedError (409 LIMIT_REACHED) | unit | | nie rozpoczęto |
 | 4 | warunek 3 | rezerwacja innego czytelnika | rezerwacja czytelnika 2 → HoldExistsError (409 HOLD_EXISTS) | unit | | nie rozpoczęto |
