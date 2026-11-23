@@ -1,0 +1,5 @@
+{
+  "testRunner": "vitest",
+  "mutate": ["src/loans/renew.ts"],
+  "thresholds": { "high": 90, "low": 80, "break": 80 }
+}
