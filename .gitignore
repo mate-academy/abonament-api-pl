@@ -6,3 +6,4 @@ reports/
 .env
 .DS_Store
 docs/
+telemetry/data/

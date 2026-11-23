@@ -2,6 +2,42 @@
 
 „Abonament” to fikcyjna sieć miejskich bibliotek. Czytelnik wypożycza książkę na 21 dni i obecnie może przedłużyć wypożyczenie tylko przy ladzie. Repozytorium odtwarza treść studium przypadku (case) C13 (M2T2, teorie 1 i 2): kod, sprawdzenia i konfigurację, z którymi zespół bierze się za ticket LIB-218.
 
+## Gałąź `telemetry`: koszt ticketu (M2T4)
+
+Materiały do teorii M2T4 „Ile kosztuje ticket: logi i telemetria” i filmu „Własne liczby”: jak zmierzyć koszt i czas agenta według ticketu i fazy procesu. Gałąź odchodzi od `own-process`, więc proces jest ten sam: skille `/research`, `/tdd`, `/implement`, a faza to aktywny skill.
+
+Co dodano (jeden commit od `own-process`):
+
+- skill `/ticket-metrics` w `.claude/skills/ticket-metrics/`: raport o tickecie z lokalnych logów Claude Code — fazy, model, effort, tokeny, szacunkowy koszt według cen API z `prices.json` i czas agenta; ticket wyszukuje po nazwie gałęzi, uruchamia go tylko programista;
+- `telemetry/`: lokalny stos w Dockerze — kolektor OpenTelemetry, Prometheus i Grafana z dashboardem „Claude Code: tickety”;
+- `telemetry/claude-env.json`: blok `env`, który włącza telemetrię;
+- `tickets/`: tickety LIB-311…LIB-314 z filmu;
+- `telemetry/data/` w `.gitignore`: tam kolektor zapisuje surowe metryki i zdarzenia.
+
+### Poziom 1: raport z logów
+
+Nie trzeba niczego włączać: Claude Code już zapisuje logi sesji w `~/.claude/projects/` (lub w `$CLAUDE_CONFIG_DIR/projects/`) i domyślnie przechowuje je 30 dni (`cleanupPeriodDays`).
+
+1. Utwórz gałąź z numerem ticketu w nazwie: `git switch -c lib-311-fine-in-loan`.
+2. Przeprowadź ticket przez skille `/research`, `/tdd`, `/implement`.
+3. W nowej sesji na tej gałęzi wpisz `/ticket-metrics LIB-311`.
+
+Ceny w `prices.json` sprawdzono 05.11.2026. Jeśli modelu tam nie ma, raport napisze „Brak ceny dla: …”: dodaj jego cenę z platform.claude.com/docs/en/about-claude/pricing.
+
+### Poziom 2: telemetria
+
+1. Uruchom stos: `cd telemetry && docker compose up -d`. Porty: OTLP 4317 i 4318, Prometheus http://localhost:9390, Grafana http://localhost:3300 (bez logowania).
+2. Dodaj zmienne z `telemetry/claude-env.json` do bloku `env` swojego `~/.claude/settings.json`. W `.claude/settings.json` repozytorium te zmienne nie działają. Interwał 10 s jest do demo; domyślnie metryki są wysyłane raz na minutę.
+3. Przed startem sesji zapisz numer ticketu w zmiennej, bez spacji w wartości: `export OTEL_RESOURCE_ATTRIBUTES="ticket=LIB-311"`. Zmienna jest odczytywana przy starcie sesji: najpierw gałąź, potem sesja.
+4. Sprawdź, czy dane docierają: w Prometheusie zapytanie `sum(claude_code_session_count_total)` daje liczbę większą od zera. Jeśli jest pusto, uruchom `claude --debug-file <plik>` i szukaj w logu „3P telemetry”.
+5. Otwórz w Grafanie dashboard „Claude Code: tickety”: koszt według faz, czas agenta i człowieka według ticketów, podział według modelu, effort i źródła żądania. Przy pierwszym starcie Grafana przez około minutę aktualizuje wbudowane pluginy; jeśli dashboard pisze „Prometheus plugin failed”, odśwież stronę.
+
+Claude Code wysyła liczniki jako delty, a Prometheus oczekuje skumulowanych sum, dlatego w `otelcol.yaml` jest procesor `delta_to_cumulative`. Zdarzenia kolektor zapisuje w `telemetry/data/events.jsonl`; zawierają one `user.email` i identyfikatory konta, więc usuń je, zanim udostępnisz wynik.
+
+Wyłączenie: usuń zmienne z `~/.claude/settings.json` i zatrzymaj stos — `docker compose stop` (dane zostają) albo `docker compose down -v` (dane Prometheusa zostają usunięte).
+
+Sprawdzono 15.11.2026 na czystym klonie gałęzi: Claude Code 2.1.325, Sonnet 5.5; stos uruchomiony od zera (OpenTelemetry Collector Contrib 0.162.0, Prometheus 3.15.1, Grafana 13.2.4). Sesja z `ticket=LIB-999` dotarła do Prometheusa i dashboardu, a skrypt `/ticket-metrics` pokazał ten sam koszt i tokeny.
+
 ## Gałąź `own-process`: praktyka M2T4
 
 Praktyka M2T4-task-1, ticket LIB-233 (studium przypadku C31): sposób „własny proces”. Tekst ticketu i decyzje Product Ownera są w zadaniu.
@@ -22,14 +58,15 @@ Sprawdzono 15.11.2026: Claude Code 2.1.319, Opus 5.5.
 
 | Gałąź | Co zawiera |
 | --- | --- |
-| `main` | Stan przed LIB-218: przedłużenie tylko przy ladzie (`adminRenew`), pętla weryfikacji (verification loop) „jak jest”, lokalne środowisko testowe z danymi bazowymi |
+| `main` | Stan przed LIB-218: przedłużenie tylko przy ladzie (`adminRenew`), pętla weryfikacji „jak jest”, lokalne środowisko testowe z danymi bazowymi |
 | `final` | LIB-218 według theory-1: sekcja `## TDD` w `CLAUDE.md`, specyfikacja i zatwierdzona lista przypadków w `docs/LIB-218/`, cykl TDD po jednym commicie na przypadek |
 | `theory-2` | `final` + testowanie mutacyjne, guardy i scenariusze środowiska testowego jako dowód (M2T5) |
 | `own-process` | M2T4, praktyka LIB-233 (studium przypadku C31): własny proces, czyli skille `/research`, `/tdd`, `/implement` i hook, który zapisuje zatwierdzony plan |
 | `openspec` | M2T4, praktyka LIB-233 (studium przypadku C31): wynik `openspec init --tools claude`, OpenSpec 1.15.0 |
 | `superpowers` | M2T4, praktyka LIB-233 (studium przypadku C31): Superpowers v7.0.0, przypięty przez marketplace kursu w `.claude/settings.json` |
+| `telemetry` | M2T4, koszt ticketu (theory-5 i film „Własne liczby”): `own-process` + skill `/ticket-metrics`, stos OpenTelemetry → Prometheus → Grafana w `telemetry/` i tickety LIB-311…LIB-314 |
 
-`main` to także gałąź bazowa dla M2T4: w C18 od niej LIB-218 i LIB-240 przechodzą przez trzy procesy, a gałęzie praktyki (C31, LIB-233) odchodzą od niej jednym commitem konfiguracji. Co zainstalować i na jakich wersjach sprawdzono gałąź, znajdziesz w README każdej gałęzi praktyki.
+`main` to także gałąź bazowa dla M2T4: w C18 od niej LIB-218 i LIB-240 przechodzą przez trzy procesy, a gałęzie praktyki (C31, LIB-233) odchodzą od niej jednym commitem konfiguracji. Gałąź `telemetry` odchodzi od `own-process` jeszcze jednym commitem. Co zainstalować i na jakich wersjach sprawdzono gałąź, znajdziesz w README każdej gałęzi praktyki.
 
 ## Ticket
 

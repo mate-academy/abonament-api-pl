@@ -1,0 +1,39 @@
+# Kolektor przyjmuje OTLP od Claude Code.
+# Metryki → Prometheus (przez endpoint do scrapowania), zdarzenia → plik data/events.jsonl.
+# Claude Code wysyła liczniki jako delty (OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta
+# domyślnie), a Prometheus oczekuje wartości skumulowanych: delta_to_cumulative sumuje delty
+# jednego szeregu, nawet gdy między nimi jest przerwa.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  delta_to_cumulative:
+    # Szereg sesji żyje 30 dni: delty po przerwie dodają się do tej samej sumy.
+    max_stale: 720h
+  batch: {}
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    # Sesja się skończyła — szereg nie znika z endpointu jeszcze przez 30 dni.
+    metric_expiration: 720h
+  file/metrics:
+    path: /data/metrics.jsonl
+  file/events:
+    path: /data/events.jsonl
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [delta_to_cumulative, batch]
+      exporters: [prometheus, file/metrics]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [file/events]
