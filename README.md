@@ -2,11 +2,32 @@
 
 „Abonament” to fikcyjna sieć miejskich bibliotek. Czytelnik wypożycza książkę na 21 dni i obecnie może przedłużyć wypożyczenie tylko przy ladzie. Repozytorium odtwarza treść studium przypadku (case) C13 (M2T2, teorie 1 i 2): kod, sprawdzenia i konfigurację, z którymi zespół bierze się za ticket LIB-218.
 
+## Gałąź `openspec`: praktyka M2T4
+
+Praktyka M2T4-task-1, ticket LIB-233 (studium przypadku C31): sposób „OpenSpec”. Tekst ticketu i decyzje Product Ownera są w zadaniu.
+
+Co skonfigurowano (jeden commit od `main`):
+
+- zacommitowany wynik `openspec init --tools claude` (OpenSpec 1.15.0, profil `core`): komendy `/opsx:*` w `.claude/commands/opsx/`, skille `.claude/skills/openspec-*`, `openspec/config.yaml`, pusta żywa specyfikacja `openspec/specs/`;
+- dane środowiska testowego (stand) dla LIB-233 (zobacz „Lokalne środowisko testowe”).
+
+CLI każdy instaluje sam, dokładnie w tej wersji, i wyłącza telemetrię OpenSpec (domyślnie jest włączona):
+
+```bash
+npm install -g @fission-ai/openspec@1.15.0
+export OPENSPEC_TELEMETRY=0
+openspec --version                      # 1.15.0
+```
+
+Nie uruchamiaj w gałęzi `openspec init` ani `openspec update`: gałąź skonfigurowano pod 1.15.0, a od OpenSpec 2.0 nie ma komend `/opsx:*`, zastępują je skille `/openspec-*`. OpenSpec 1.15.0 wymaga Node.js 20.19.0 lub nowszego; repozytorium używa Node 22.
+
+Sprawdzono 15.11.2026: OpenSpec 1.15.0, Claude Code 2.1.319, Opus 5.5.
+
 ## Gałęzie
 
 | Gałąź | Co zawiera |
 | --- | --- |
-| `main` | Stan przed LIB-218: przedłużenie tylko przy ladzie (`adminRenew`), pętla weryfikacji (verification loop) „jak jest”, lokalne środowisko testowe (stand) z danymi bazowymi |
+| `main` | Stan przed LIB-218: przedłużenie tylko przy ladzie (`adminRenew`), pętla weryfikacji (verification loop) „jak jest”, lokalne środowisko testowe z danymi bazowymi |
 | `final` | LIB-218 według theory-1: sekcja `## TDD` w `CLAUDE.md`, specyfikacja i zatwierdzona lista przypadków w `docs/LIB-218/`, cykl TDD po jednym commicie na przypadek |
 | `theory-2` | `final` + testowanie mutacyjne, guardy i scenariusze środowiska testowego jako dowód (M2T5) |
 | `own-process` | M2T4, praktyka LIB-233 (studium przypadku C31): własny proces, czyli skille `/research`, `/tdd`, `/implement` i hook, który zapisuje zatwierdzony plan |
@@ -91,8 +112,11 @@ Dane środowiska testowego (`stand/seed-data.ts`, wszystkie daty z roku 2026, 00
 | 4 | reader3 | 104 | 18.11 | 0 | — |
 | 5 | reader4 | 105 | 04.11 | 0 | — |
 | 6 | reader1 | 106 | 11.10 | 1 | 15.10 |
+| 7 | reader4 | 107 | 30.10 | 0 | — |
 
-catalog-api (`stand/catalog-api/holds.json`): rezerwacja reader2 na książkę 104.
+catalog-api (`stand/catalog-api/holds.json`): rezerwacja reader2 na książkę 104 i rezerwacja reader1 na książkę 101, czyli na jego własne wypożyczenie 1.
+
+Dla LIB-233: wypożyczenie 7 na 03.11 jest przeterminowane, `fineMinor` daje 1000 (dwa dni robocze po 500); wypożyczenie 4 ma rezerwację innego czytelnika, wypożyczenie 1 ma tylko własną rezerwację, a wypożyczenia 2 i 6 są już zwrócone.
 
 ## Pętla weryfikacji „jak jest”
 
