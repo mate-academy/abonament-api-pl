@@ -11,4 +11,11 @@ describe("renew", () => {
     await expect(renew(m.deps, 1, 7)).resolves.toEqual(new Date("2026-11-24T00:00:00Z"));
     expect(m.loans.extend).toHaveBeenCalledWith(7, new Date("2026-11-24T00:00:00Z"));
   });
+
+  it("allows the second renewal", async () => {
+    const m = makeMocks();
+    m.loans.get.mockResolvedValue(loan({ renewals: 1 }));
+
+    await expect(renew(m.deps, 1, 7)).resolves.toEqual(new Date("2026-11-24T00:00:00Z"));
+  });
 });
