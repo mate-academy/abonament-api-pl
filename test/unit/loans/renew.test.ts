@@ -54,4 +54,12 @@ describe("renew", () => {
     expect(m.loans.countOverdue).toHaveBeenCalledWith(1, new Date("2026-11-03T09:00:00Z"));
     expect(m.loans.extend).not.toHaveBeenCalled();
   });
+
+  it("reports LIMIT_REACHED before OVERDUE_LOANS", async () => {
+    const m = makeMocks();
+    m.loans.get.mockResolvedValue(loan({ renewals: 2 }));
+    m.loans.countOverdue.mockResolvedValue(1);
+
+    await expect(renew(m.deps, 1, 7)).rejects.toThrow(LimitReachedError);
+  });
 });
