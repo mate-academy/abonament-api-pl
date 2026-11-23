@@ -12,3 +12,11 @@ export class LimitReachedError extends Error {
     this.name = "LimitReachedError";
   }
 }
+
+export class HoldExistsError extends Error {
+  readonly code = "HOLD_EXISTS";
+  constructor() {
+    super("book has an active hold");
+    this.name = "HoldExistsError";
+  }
+}
