@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HoldExistsError, LimitReachedError } from "../../../src/loans/errors";
+import { HoldExistsError, LimitReachedError, OverdueLoansError } from "../../../src/loans/errors";
 import { renew } from "../../../src/loans/renew";
 import { loan, makeMocks } from "./helpers";
 
@@ -43,5 +43,15 @@ describe("renew", () => {
     m.holds.activeForBook.mockResolvedValue([{ id: 2, bookId: 3, readerId: 1 }]);
 
     await expect(renew(m.deps, 1, 7)).resolves.toEqual(new Date("2026-11-24T00:00:00Z"));
+  });
+
+  it("rejects when the reader has an overdue loan", async () => {
+    const m = makeMocks();
+    m.loans.get.mockResolvedValue(loan());
+    m.loans.countOverdue.mockResolvedValue(1);
+
+    await expect(renew(m.deps, 1, 7)).rejects.toThrow(OverdueLoansError);
+    expect(m.loans.countOverdue).toHaveBeenCalledWith(1, new Date("2026-11-03T09:00:00Z"));
+    expect(m.loans.extend).not.toHaveBeenCalled();
   });
 });

@@ -20,3 +20,11 @@ export class HoldExistsError extends Error {
     this.name = "HoldExistsError";
   }
 }
+
+export class OverdueLoansError extends Error {
+  readonly code = "OVERDUE_LOANS";
+  constructor() {
+    super("reader has overdue loans");
+    this.name = "OverdueLoansError";
+  }
+}
