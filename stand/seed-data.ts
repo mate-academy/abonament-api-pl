@@ -15,4 +15,5 @@ export const loans = [
   { id: 4, readerId: 3, bookId: 104, issuedAt: d("2026-10-28"), dueAt: d("2026-11-18"), renewals: 0 },
   { id: 5, readerId: 4, bookId: 105, issuedAt: d("2026-10-14"), dueAt: d("2026-11-04"), renewals: 0 },
   { id: 6, readerId: 1, bookId: 106, issuedAt: d("2026-09-20"), dueAt: d("2026-10-11"), renewals: 1, returnedAt: d("2026-10-15") },
+  { id: 7, readerId: 4, bookId: 107, issuedAt: d("2026-10-09"), dueAt: d("2026-10-30"), renewals: 0 },
 ];
