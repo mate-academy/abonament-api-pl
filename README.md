@@ -40,6 +40,59 @@ Nowy kod: `src/loans/renew.ts`, `src/loans/errors.ts`, metody `countOverdue` i `
 | --- | --- |
 | `POST /loans/:id/renew` | `200 { dueAt }`; `409 { code }` z `LIMIT_REACHED`, `OVERDUE_LOANS` lub `HOLD_EXISTS`; `503 { code: "CATALOG_UNAVAILABLE" }`; `404` dla cudzego lub nieistniejącego wypożyczenia; `401` bez tokena |
 
+## Gałąź `theory-2`: mutanty i guardy
+
+Kontynuuje `final`. Każdy krok to osobny commit z wynikiem w treści (`git log theory-2`).
+
+### Testowanie mutacyjne
+
+`stryker.config.json` jak w theory-2: `testRunner` vitest, `mutate` `src/loans/renew.ts`, progi 90 / 80 / break 80.
+
+```bash
+npx stryker run      # raport: reports/mutation/mutation.html
+```
+
+| Przebieg | Mutanty | Zabite | Przeżyły | Bez pokrycia | CompileError | Wynik | Exit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| kod `final`, konfiguracja theory-2 | 28 | 22 | 5 | 1 | — | 78,57 | 1 (poniżej break) |
+| to samo + `@stryker-mutator/typescript-checker` (osobny przebieg, nie w repozytorium) | 28 | 13 | 1 | 0 | 14 | 92,86 | 0 |
+| po wzmocnieniu testu przypadku 8 | 28 | 24 | 3 | 1 | — | 85,71 | 0 |
+
+Mutanty, które przeżyły na `final`: dwa w linii 21 (`.catch((err) => {})` i `.catch((err) => { ; })`), bo test przypadku 8 sprawdzał tylko `rejects.toThrow()`; trzy w linii 17 i jeden bez pokrycia w tym samym miejscu, bo sprawdzenia `NotFoundError` (cudze lub nieistniejące wypożyczenie) nie pokrywa żaden zatwierdzony przypadek. Linię 17 zostawiono bez zmian: ticket nie określa tego zachowania, decyzja należy do autorki ticketu.
+
+### Guardy
+
+| Guard | Gdzie | Reaguje na | Przepuszcza uzgodniony wyjątek |
+| --- | --- | --- | --- |
+| ESLint: `vitest/no-disabled-tests`, `no-commented-out-tests`, `expect-expect`; eslint-comments `require-description` | `eslint.config.js`; PostToolUse; CI `lint` | `it.skip`, zakomentowany test, test bez `expect`, `eslint-disable` bez przyczyny → hook exit 2 | `// eslint-disable-next-line vitest/no-disabled-tests -- <przyczyna>` → exit 0 |
+| Próg pokrycia funkcji repozytoriów | CI `integration`: `--coverage.include='src/store/*.repo.ts' --coverage.thresholds.functions=100` | bez testu integracyjnego `extend` → 87,5 %, exit 1 | `/* v8 ignore next 5 -- <przyczyna> */` → exit 0 |
+| Testowanie mutacyjne | CI `mutation`: `npx stryker run` | wynik poniżej 80 → exit 1 | `// Stryker disable next-line <mutator>: <przyczyna>` |
+| Quality gate Sonar way | serwer SonarQube; CI `sonar` | brak serwera, nie był uruchamiany | Accepted / False positive z uprawnieniem Administer Issues |
+| CODEOWNERS na konfiguracje guardów | `.github/CODEOWNERS` | zmiana `eslint.config.js`, `vitest.config.ts`, `stryker.config.json`, `sonar-project.properties` wymaga przeglądu właściciela | właściciel zatwierdza zmianę |
+
+Czego ten zestaw nie wyłapuje (sprawdzone): `it.todo` (wyłapuje go reguła `vitest/warn-todo`, nie dodano jej do konfiguracji) i `it.skipIf(true)`: lint i Vitest są zielone, „1 skipped”.
+
+`@vitest/eslint-plugin` jest przypięty do wersji 1.6.27: 1.6.28 wymaga TypeScript ≥ 6, a `npm install` na TypeScript 5.6.3 kończy się błędem ERESOLVE.
+
+### Dowód ze środowiska testowego
+
+`http/renew.http`: 9 scenariuszy LIB-218, `docs/LIB-218/stand-proof.md`: komendy, surowe odpowiedzi i stan po żądaniu. Wszystkie 9 są zgodne z oczekiwaniami. Scenariusz 9: po `docker compose stop catalog-api` 503 przychodzi po 0,02–0,2 s (nazwa się nie rozwiązuje), timeout 2 s widać dopiero po `docker compose pause catalog-api` (2,02 s).
+
+Dane środowiska testowego dla LIB-218 (`stand/seed-data.ts`, niezwrócone, rok 2026, 00:00 UTC):
+
+| Wypożyczenie | Czytelnik | Książka | due_at | renewals | Scenariusz |
+| --- | --- | --- | --- | --- | --- |
+| 7 | reader1 | 107 | 10.11 | 0 | 1 |
+| 8 | reader1 | 108 | 17.11 | 1 | 2 |
+| 9 | reader1 | 109 | 24.11 | 2 | 3 |
+| 10 | reader1 | 110, rezerwacja reader2 | 14.11 | 0 | 4 |
+| 11 | reader1 | 111, rezerwacja reader1 | 14.11 | 0 | 5 |
+| 12 | reader3 | 112 | 15.11 | 0 | 6 |
+| 13 | reader3 | 113 | 30.10 | 0 | przeterminowanie dla scenariusza 6 |
+| 14 | reader4 | 114 | 01.11 | 0 | 7 |
+| 15 | reader4 | 115 | 20.11 | 2 | 8 |
+| 16 | reader1 | 116 | 12.11 | 0 | 9 |
+
 ## Struktura
 
 ```
@@ -124,7 +177,7 @@ Docker jest dostępny zarówno w CI, jak i w sesji agenta.
 
 ## Bramka CI (CI gate) i branch protection
 
-Workflow `.github/workflows/ci.yml`: joby `lint`, `typecheck`, `unit`, `integration`, `sonar` na każdy PR do `main`. Pokrycie z unit i integration trafia do Sonara jako lcov. Sekrety `SONAR_TOKEN` i `SONAR_HOST_URL` są w ustawieniach repozytorium.
+Workflow `.github/workflows/ci.yml`: joby `lint`, `typecheck`, `unit`, `integration`, `sonar` na każdy PR do `main`; na `theory-2` także `mutation` i próg pokrycia w `integration`. Pokrycie z unit i integration trafia do Sonara jako lcov. Sekrety `SONAR_TOKEN` i `SONAR_HOST_URL` są w ustawieniach repozytorium.
 
 Repozytorium szkoleniowe nie ma serwera Sonar, więc bez tych sekretów job `sonar` jest czerwony. Zespół `@abonament/backend-leads` w CODEOWNERS jest umowny: na GitHubie takiego nie ma.
 
@@ -133,9 +186,11 @@ Branch protection ustawia się w ustawieniach GitHuba i nie wchodzi do repozytor
 ```
 Branch protection (main)
   Require status checks to pass: lint, unit, integration, SonarQube quality gate
+                                  (theory-2: + mutation)
   Require approvals: 1
   Require review from Code Owners: włączone
-  .github/CODEOWNERS: /drizzle/
+  .github/CODEOWNERS: /drizzle/; na theory-2 także eslint.config.js, vitest.config.ts,
+                      stryker.config.json, sonar-project.properties
 ```
 
 ## Monitoring produkcji
