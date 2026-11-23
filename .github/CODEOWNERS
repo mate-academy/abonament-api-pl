@@ -1,1 +1,7 @@
 /drizzle/ @abonament/backend-leads
+
+# Konfiguracje guardów (theory-2): osłabienie sprawdzenia wymaga przeglądu właściciela
+/eslint.config.js @abonament/backend-leads
+/vitest.config.ts @abonament/backend-leads
+/stryker.config.json @abonament/backend-leads
+/sonar-project.properties @abonament/backend-leads
