@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { LimitReachedError } from "../../../src/loans/errors";
 import { renew } from "../../../src/loans/renew";
 import { loan, makeMocks } from "./helpers";
 
@@ -17,5 +18,13 @@ describe("renew", () => {
     m.loans.get.mockResolvedValue(loan({ renewals: 1 }));
 
     await expect(renew(m.deps, 1, 7)).resolves.toEqual(new Date("2026-11-24T00:00:00Z"));
+  });
+
+  it("rejects the third renewal with LIMIT_REACHED", async () => {
+    const m = makeMocks();
+    m.loans.get.mockResolvedValue(loan({ renewals: 2 }));
+
+    await expect(renew(m.deps, 1, 7)).rejects.toThrow(LimitReachedError);
+    expect(m.loans.extend).not.toHaveBeenCalled();
   });
 });
