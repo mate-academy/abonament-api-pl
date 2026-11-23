@@ -1,0 +1,40 @@
+# LIB-218: scenariusze uzgodniono przed uruchomieniem, oczekiwania pochodzą z ticketu i specyfikacji.
+# Środowisko testowe: docker compose up --build -d (CLOCK_FIXED_NOW=2026-11-03T09:00:00Z).
+# Każdy scenariusz ma własne wypożyczenie: żądanie zmienia jego stan. Reset: docker compose down -v.
+
+### 1. Liczenie od due_at: 200, 10.11 → 24.11 (wypożyczenie 7)
+POST {{host}}/loans/7/renew
+Authorization: Bearer {{reader1}}
+
+### 2. Drugie przedłużenie: 200, 17.11 → 01.12 (wypożyczenie 8)
+POST {{host}}/loans/8/renew
+Authorization: Bearer {{reader1}}
+
+### 3. Limit: 409 LIMIT_REACHED (wypożyczenie 9, renewals = 2)
+POST {{host}}/loans/9/renew
+Authorization: Bearer {{reader1}}
+
+### 4. Rezerwacja innego czytelnika: 409 HOLD_EXISTS (wypożyczenie 10, rezerwacja reader2 na książkę 110)
+POST {{host}}/loans/10/renew
+Authorization: Bearer {{reader1}}
+
+### 5. Własna rezerwacja nie blokuje: 200, 14.11 → 28.11 (wypożyczenie 11, rezerwacja reader1 na książkę 111)
+POST {{host}}/loans/11/renew
+Authorization: Bearer {{reader1}}
+
+### 6. Inne przeterminowane wypożyczenie: 409 OVERDUE_LOANS (wypożyczenie 12; reader3 ma przeterminowane wypożyczenie 13)
+POST {{host}}/loans/12/renew
+Authorization: Bearer {{reader3}}
+
+### 7. Przeterminowane samo wypożyczenie: 409 OVERDUE_LOANS (wypożyczenie 14, due_at 01.11)
+POST {{host}}/loans/14/renew
+Authorization: Bearer {{reader4}}
+
+### 8. Limit i przeterminowanie razem: 409 LIMIT_REACHED (wypożyczenie 15)
+POST {{host}}/loans/15/renew
+Authorization: Bearer {{reader4}}
+
+### 9. catalog-api niedostępny: 503, due_at bez zmian (wypożyczenie 16)
+# przed uruchomieniem: docker compose stop catalog-api
+POST {{host}}/loans/16/renew
+Authorization: Bearer {{reader1}}
