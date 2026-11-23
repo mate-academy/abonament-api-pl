@@ -13,7 +13,7 @@ export async function renew(
   if (!loan || loan.readerId !== readerId) throw new NotFoundError();
   if (loan.renewals >= MAX_RENEWALS) throw new LimitReachedError();
   const active = await holds.activeForBook(loan.bookId);
-  if (active.length > 0) throw new HoldExistsError();
+  if (active.some((h) => h.readerId !== readerId)) throw new HoldExistsError();
   const newDue = addDays(loan.dueAt, RENEWAL_DAYS);
   await loans.extend(loanId, newDue);
   return newDue;

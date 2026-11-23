@@ -36,4 +36,12 @@ describe("renew", () => {
     await expect(renew(m.deps, 1, 7)).rejects.toThrow(HoldExistsError);
     expect(m.loans.extend).not.toHaveBeenCalled();
   });
+
+  it("own hold does not block renewal", async () => {
+    const m = makeMocks();
+    m.loans.get.mockResolvedValue(loan({ bookId: 3 }));
+    m.holds.activeForBook.mockResolvedValue([{ id: 2, bookId: 3, readerId: 1 }]);
+
+    await expect(renew(m.deps, 1, 7)).resolves.toEqual(new Date("2026-11-24T00:00:00Z"));
+  });
 });
