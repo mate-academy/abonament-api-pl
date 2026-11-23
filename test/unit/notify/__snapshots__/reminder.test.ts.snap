@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`due reminder email > matches the approved text 1`] = `
+{
+  "subject": "Przypomnienie: zwrot książki #105",
+  "text": "Dzień dobry, Tomasz Zieliński!
+
+Przypominamy: książkę #105 należy zwrócić do 4 listopada 2026
+Wypożyczenie można przedłużyć przy ladzie każdej biblioteki sieci „Abonament”.
+
+Miłej lektury!
+",
+  "to": "reader4@example.com",
+}
+`;

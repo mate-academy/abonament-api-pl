@@ -1,0 +1,14 @@
+### Własne wypożyczenie: 200 { id, dueAt, renewals }
+GET {{host}}/loans/1
+Authorization: Bearer {{reader1}}
+
+### Cudze wypożyczenie: 404
+GET {{host}}/loans/3
+Authorization: Bearer {{reader1}}
+
+### Bez tokena: 401
+GET {{host}}/loans/1
+
+### Przedłużenie przy ladzie (bibliotekarz): od dziś + 14 dni
+POST {{host}}/admin/loans/4/renew
+Authorization: Bearer {{librarian}}
