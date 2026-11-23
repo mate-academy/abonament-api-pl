@@ -11,7 +11,7 @@ Dane przypadków jednostkowych: dziś (`clock.now()`) 03.11.2026. Status: nie ro
 | 5 | warunek 3, decyzja 3 | własna rezerwacja nie blokuje | rezerwacja czytelnika 1 → 200 | unit | `test/unit/loans/renew.test.ts` › own hold does not block renewal | zielony |
 | 6 | warunek 4 | jest przeterminowane wypożyczenie | countOverdue zwraca 1 → OverdueLoansError (409 OVERDUE_LOANS), extend nie jest wywoływany | unit | `test/unit/loans/renew.test.ts` › rejects when the reader has an overdue loan | zielony |
 | 7 | decyzja 4 | kolejność przyczyn | renewals = 2 i jest przeterminowane wypożyczenie → LIMIT_REACHED | unit | `test/unit/loans/renew.test.ts` › reports LIMIT_REACHED before OVERDUE_LOANS | zielony |
-| 8 | decyzja 2 | catalog-api niedostępny | activeForBook odrzuca zapytanie (timeout) → CatalogUnavailableError, extend nie jest wywoływany | unit | | nie rozpoczęto |
+| 8 | decyzja 2 | catalog-api niedostępny | activeForBook odrzuca zapytanie (timeout) → CatalogUnavailableError, extend nie jest wywoływany | unit | `test/unit/loans/renew.test.ts` › rejects when catalog-api is unavailable | zielony |
 | 9 | warunek 4, decyzja 1 | countOverdue na Postgresie | due_at minutę wcześniej niż clock.now() → 1, minutę później → 0; zwrócone przeterminowane wypożyczenie → 0; samo przedłużane wypożyczenie jest liczone | integration | `test/integration/store/loans.repo.test.ts` › countOverdue against Postgres (3 testy) | zielony |
 | 10 | zasada CLAUDE.md | extend na Postgresie | due_at zaktualizowane, renewals + 1 | integration | `test/integration/store/loans.repo.test.ts` › extend against Postgres | zielony |
 | 11 | warunek 5 | format odpowiedzi | 200 { dueAt }; 409 { code }; 503 { code: "CATALOG_UNAVAILABLE" } | API | | nie rozpoczęto |

@@ -62,4 +62,16 @@ describe("renew", () => {
 
     await expect(renew(m.deps, 1, 7)).rejects.toThrow(LimitReachedError);
   });
+
+  it("rejects when catalog-api is unavailable", async () => {
+    const m = makeMocks();
+    const { deps } = m;
+    m.loans.get.mockResolvedValue(loan());
+    m.holds.activeForBook.mockRejectedValue(
+      new DOMException("The operation was aborted due to timeout", "TimeoutError"),
+    );
+
+    await expect(renew(deps, 1, 7)).rejects.toThrow();
+    expect(m.loans.extend).not.toHaveBeenCalled();
+  });
 });

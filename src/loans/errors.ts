@@ -28,3 +28,11 @@ export class OverdueLoansError extends Error {
     this.name = "OverdueLoansError";
   }
 }
+
+export class CatalogUnavailableError extends Error {
+  readonly code = "CATALOG_UNAVAILABLE";
+  constructor(cause: unknown) {
+    super("catalog-api unavailable", { cause });
+    this.name = "CatalogUnavailableError";
+  }
+}
